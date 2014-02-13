@@ -28,5 +28,16 @@
    <style name="Widget.Light.ActionBar.Transparent">
         <item name="android:background">@android:color/transparent</item>
     </style>
+    
+   <style name="Sticky">
+        <item name="android:background">@android:color/holo_purple</item>
+        <item name="android:layout_height">@dimen/sticky_height</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
 
 </resources>

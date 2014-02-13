@@ -1,22 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?android:attr/windowBackground"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="15dp"
-        android:text="@string/loren_ipsum"
-        android:textAppearance="@android:style/TextAppearance.Medium" />
+        android:background="?android:attr/windowBackground"
+        android:orientation="vertical" >
+        
+        <View android:id="@+id/placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/sticky_height" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="@string/loren_ipsum"
+            android:textAppearance="@android:style/TextAppearance.Medium" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="@string/loren_ipsum"
+            android:textAppearance="@android:style/TextAppearance.Medium" />
+    </LinearLayout>
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="15dp"
-        android:text="@string/loren_ipsum"
-        android:textAppearance="@android:style/TextAppearance.Medium" />
+        android:id="@+id/sticky"
+        android:text="@string/app_name"
+        style="@style/Sticky" />
 
-</LinearLayout>
+</FrameLayout>

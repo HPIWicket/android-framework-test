@@ -6,19 +6,24 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.android.volley.Response.Listener;
 import com.manuelpeinado.fadingactionbar.FadingActionBarHelper;
+import com.manuelpeinado.fadingactionbar.view.OnScrollChangedCallback;
 
 import de.thegerman.test_app.model.ErasmusPicture;
 import de.thegerman.test_app.requests.GsonRequest;
@@ -32,17 +37,37 @@ public class MainActivity extends Activity {
 	private ViewGroup mContentFrame;
 	private ViewPager mViewPager;
 	private GalleryViewPagerAdapter mPagerAdapter;
+	private Drawable mBackgroundDrawable;
+	private FadingActionBarHelper mFadingActionBarHelper;
+	private View mStickyView;
+	private View mPlaceholderView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		FadingActionBarHelper helper = new FadingActionBarHelper().actionBarBackground(R.drawable.ab_background).headerView(createHeaderView()).contentLayout(R.layout.activity_scrollview);
+
+		mBackgroundDrawable = getResources().getDrawable(R.drawable.ab_background);
+		mFadingActionBarHelper = new FadingActionBarHelper().actionBarBackground(mBackgroundDrawable).headerView(createHeaderView()).contentView(createContentView()).scrollChangedCallback(mScrollChangedCallback);
 		mContentFrame = (ViewGroup) findViewById(R.id.contentFrame);
-		mContentFrame.addView(helper.createView(this));
-		helper.initActionBar(this);
+		mContentFrame.addView(mFadingActionBarHelper.createView(this));
+		mFadingActionBarHelper.initActionBar(this);
 		setUpDrawer();
+	}
+
+	private View createContentView() {
+		final View contentView = getLayoutInflater().inflate(R.layout.activity_scrollview, null);
+		mStickyView = contentView.findViewById(R.id.sticky);
+		mPlaceholderView = contentView.findViewById(R.id.placeholder);
+		contentView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@SuppressWarnings("deprecation")
+			@Override
+			public void onGlobalLayout() {
+				mScrollChangedCallback.onScroll(0, 0);
+				contentView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+			}
+		});
+		return contentView;
 	}
 
 	private View createHeaderView() {
@@ -69,6 +94,14 @@ public class MainActivity extends Activity {
 	protected void setUpDrawer() {
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
 		mDrawerList = (ListView) findViewById(R.id.leftDrawer);
+		TypedValue tv = new TypedValue();
+		if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+			mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+		} else {
+			mActionBarHeight = TypedValue.complexToDimensionPixelSize(48, getResources().getDisplayMetrics());
+		}
+		ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) mDrawerList.getLayoutParams();
+		layoutParams.setMargins(0, mActionBarHeight, 0, 0);
 		menuItems = new ArrayList<String>();
 		menuItems.add("Test");
 
@@ -82,8 +115,24 @@ public class MainActivity extends Activity {
 		R.string.drawer_open, /* "open drawer" description for accessibility */
 		R.string.drawer_close /* "close drawer" description for accessibility */
 		) {
+			@Override
+			public void onDrawerSlide(View drawerView, float slideOffset) {
+				checkActionBarVisibility(slideOffset);
+				super.onDrawerSlide(drawerView, slideOffset);
+			}
+
+			private void checkActionBarVisibility(float slideOffset) {
+				if (slideOffset > 0) {
+					int alphaStep = (int) ((255 - mFadingActionBarHelper.getLastAlpha()) * slideOffset);
+					mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha() + alphaStep);
+				} else {
+					mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
+				}
+			}
+
 			public void onDrawerClosed(View drawerView) {
 				showContentActionbar();
+				mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
 			}
 
 			public void onDrawerOpened(View drawerView) {
@@ -131,5 +180,14 @@ public class MainActivity extends Activity {
 	protected void showAppActionbar() {
 		invalidateOptionsMenu();
 	}
+
+	private OnScrollChangedCallback mScrollChangedCallback = new OnScrollChangedCallback() {
+		@Override
+		public void onScroll(int l, int scrollY) {
+			int stickyPos = scrollY - mFadingActionBarHelper.getHeaderHeight() + mActionBarHeight;
+			mStickyView.setTranslationY(Math.max(mPlaceholderView.getTop(), stickyPos));
+		}
+	};
+	private int mActionBarHeight;
 
 }
