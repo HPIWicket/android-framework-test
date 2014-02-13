@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="actionBarBackground">#e1e1e1</color>
+    <color name="actionBarBackgroundInStarCraft">#e1e1e1</color>
+    <color name="actionBarBackgroundInDiablo">#e1e1e1</color>
+    <color name="actionBarBackgroundInDotA2">#e1e1e1</color>
+    <color name="actionBarBackgroundInNews">#e1e1e1</color>
+    <color name="actionBarBackgroundInCounterStrike">#e1e1e1</color>
+    <color name="actionBarBackgroundInHearthstone">#e1e1e1</color>
+    <color name="drawerDivider">#aaaaaa</color>
+    <color name="in_orange">#d96d00</color>
+    <color name="in_gray">#555555</color>
+    <color name="in_light_gray">#cccccc</color>
+    <color name="in_white">#ffffff</color>
+</resources>
