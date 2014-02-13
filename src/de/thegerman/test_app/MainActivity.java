@@ -30,6 +30,7 @@ import de.thegerman.test_app.requests.GsonRequest;
 
 public class MainActivity extends Activity {
 
+	private static final String LAST_VIEWPAGER_POSITION = "LAST_VIEWPAGER_POSITION";
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -41,12 +42,17 @@ public class MainActivity extends Activity {
 	private FadingActionBarHelper mFadingActionBarHelper;
 	private View mStickyView;
 	private View mPlaceholderView;
+	private int mSavedPosition;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		if (savedInstanceState != null) {
+			mSavedPosition = savedInstanceState.getInt(LAST_VIEWPAGER_POSITION, 0);
+		}
+		
 		mBackgroundDrawable = getResources().getDrawable(R.drawable.ab_background);
 		mFadingActionBarHelper = new FadingActionBarHelper().actionBarBackground(mBackgroundDrawable).headerView(createHeaderView()).contentView(createContentView()).scrollChangedCallback(mScrollChangedCallback);
 		mContentFrame = (ViewGroup) findViewById(R.id.contentFrame);
@@ -69,6 +75,12 @@ public class MainActivity extends Activity {
 		});
 		return contentView;
 	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt(LAST_VIEWPAGER_POSITION, mViewPager.getCurrentItem());
+		super.onSaveInstanceState(outState);
+	}
 
 	private View createHeaderView() {
 		View headerView = getLayoutInflater().inflate(R.layout.activity_header, null);
@@ -87,6 +99,9 @@ public class MainActivity extends Activity {
 			public void onResponse(ErasmusPicture[] pictures) {
 				mPagerAdapter.setPictures(Arrays.asList(pictures));
 				mPagerAdapter.notifyDataSetChanged();
+				if (pictures.length > mSavedPosition) {
+					mViewPager.setCurrentItem(mSavedPosition, false);
+				}
 			}
 		};
 	}
