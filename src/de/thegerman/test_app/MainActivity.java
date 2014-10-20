@@ -4,20 +4,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.util.TypedValue;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -28,181 +27,185 @@ import com.manuelpeinado.fadingactionbar.view.OnScrollChangedCallback;
 import de.thegerman.test_app.model.ErasmusPicture;
 import de.thegerman.test_app.requests.GsonRequest;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ActionBarActivity {
 
-	private static final String LAST_VIEWPAGER_POSITION = "LAST_VIEWPAGER_POSITION";
-	private DrawerLayout mDrawerLayout;
-	private ListView mDrawerList;
-	private ActionBarDrawerToggle mDrawerToggle;
-	private List<String> menuItems;
-	private ViewGroup mContentFrame;
-	private ViewPager mViewPager;
-	private GalleryViewPagerAdapter mPagerAdapter;
-	private Drawable mBackgroundDrawable;
-	private FadingActionBarHelper mFadingActionBarHelper;
-	private View mStickyView;
-	private View mPlaceholderView;
-	private int mSavedPosition;
+    private static final String LAST_VIEWPAGER_POSITION = "LAST_VIEWPAGER_POSITION";
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private List<String> menuItems;
+    private ViewGroup mContentFrame;
+    private ViewPager mViewPager;
+    private GalleryViewPagerAdapter mPagerAdapter;
+    private Drawable mBackgroundDrawable;
+    private FadingActionBarHelper mFadingActionBarHelper;
+    private View mStickyView;
+    private View mPlaceholderView;
+    private int mSavedPosition;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-		if (savedInstanceState != null) {
-			mSavedPosition = savedInstanceState.getInt(LAST_VIEWPAGER_POSITION, 0);
-		}
-		
-		mBackgroundDrawable = getResources().getDrawable(R.drawable.ab_background);
-		mFadingActionBarHelper = new FadingActionBarHelper().actionBarBackground(mBackgroundDrawable).headerView(createHeaderView()).contentView(createContentView()).scrollChangedCallback(mScrollChangedCallback);
-		mContentFrame = (ViewGroup) findViewById(R.id.contentFrame);
-		mContentFrame.addView(mFadingActionBarHelper.createView(this));
-		mFadingActionBarHelper.initActionBar(this);
-		setUpDrawer();
-	}
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        // Title and subtitle
+        mToolbar.setTitle("MY toolbar");
+        mToolbar.setSubtitle("Subtitle");
+        setSupportActionBar(mToolbar);
 
-	private View createContentView() {
-		final View contentView = getLayoutInflater().inflate(R.layout.activity_scrollview, null);
-		mStickyView = contentView.findViewById(R.id.sticky);
-		mPlaceholderView = contentView.findViewById(R.id.placeholder);
-		contentView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-			@SuppressWarnings("deprecation")
-			@Override
-			public void onGlobalLayout() {
-				mScrollChangedCallback.onScroll(0, 0);
-				contentView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-			}
-		});
-		return contentView;
-	}
-	
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		outState.putInt(LAST_VIEWPAGER_POSITION, mViewPager.getCurrentItem());
-		super.onSaveInstanceState(outState);
-	}
+        if (savedInstanceState != null) {
+            mSavedPosition = savedInstanceState.getInt(LAST_VIEWPAGER_POSITION, 0);
+        }
 
-	private View createHeaderView() {
-		View headerView = getLayoutInflater().inflate(R.layout.activity_header, null);
-		mPagerAdapter = new GalleryViewPagerAdapter(getFragmentManager());
-		mViewPager = (ViewPager) headerView.findViewById(R.id.pager);
-		mViewPager.setAdapter(mPagerAdapter);
-		GsonRequest<ErasmusPicture[]> request = new GsonRequest<ErasmusPicture[]>("http://erasmus.thegerman.de/conf/getJSON.php?aktion=getAllImagesJson", ErasmusPicture[].class, null, createSuccessListener(), null);
-		TestApplication.getRequestQueue().add(request);
-		return headerView;
-	}
+        mBackgroundDrawable = getResources().getDrawable(R.drawable.ab_background);
+        mFadingActionBarHelper = new FadingActionBarHelper().actionBarBackground(mBackgroundDrawable).headerView(createHeaderView()).contentView(createContentView())
+                .scrollChangedCallback(mScrollChangedCallback);
+        mContentFrame = (ViewGroup) findViewById(R.id.contentFrame);
+        mContentFrame.addView(mFadingActionBarHelper.createView(this));
+        mFadingActionBarHelper.initActionBar(this, getSupportActionBar());
+        setUpDrawer();
+    }
 
-	private Listener<ErasmusPicture[]> createSuccessListener() {
-		return new Listener<ErasmusPicture[]>() {
+    private View createContentView() {
+        final View contentView = getLayoutInflater().inflate(R.layout.activity_scrollview, null);
+        mStickyView = contentView.findViewById(R.id.sticky);
+        mPlaceholderView = contentView.findViewById(R.id.placeholder);
+        contentView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @SuppressWarnings("deprecation")
+            @Override
+            public void onGlobalLayout() {
+                mScrollChangedCallback.onScroll(0, 0);
+                contentView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+        });
+        return contentView;
+    }
 
-			@Override
-			public void onResponse(ErasmusPicture[] pictures) {
-				mPagerAdapter.setPictures(Arrays.asList(pictures));
-				mPagerAdapter.notifyDataSetChanged();
-				if (pictures.length > mSavedPosition) {
-					mViewPager.setCurrentItem(mSavedPosition, false);
-				}
-			}
-		};
-	}
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(LAST_VIEWPAGER_POSITION, mViewPager.getCurrentItem());
+        super.onSaveInstanceState(outState);
+    }
 
-	protected void setUpDrawer() {
-		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-		mDrawerList = (ListView) findViewById(R.id.leftDrawer);
-		TypedValue tv = new TypedValue();
-		if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-			mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
-		} else {
-			mActionBarHeight = TypedValue.complexToDimensionPixelSize(48, getResources().getDisplayMetrics());
-		}
-		ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) mDrawerList.getLayoutParams();
-		layoutParams.setMargins(0, mActionBarHeight, 0, 0);
-		menuItems = new ArrayList<String>();
-		menuItems.add("Test");
+    private View createHeaderView() {
+        View headerView = getLayoutInflater().inflate(R.layout.activity_header, null);
+        mPagerAdapter = new GalleryViewPagerAdapter(getFragmentManager());
+        mViewPager = (ViewPager) headerView.findViewById(R.id.pager);
+        mViewPager.setAdapter(mPagerAdapter);
+        GsonRequest<ErasmusPicture[]> request = new GsonRequest<ErasmusPicture[]>("http://erasmus.thegerman.de/conf/getJSON.php?aktion=getAllImagesJson", ErasmusPicture[].class,
+                null, createSuccessListener(), null);
+        TestApplication.getRequestQueue().add(request);
+        return headerView;
+    }
 
-		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+    private Listener<ErasmusPicture[]> createSuccessListener() {
+        return new Listener<ErasmusPicture[]>() {
 
-		mDrawerList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, menuItems));
+            @Override
+            public void onResponse(ErasmusPicture[] pictures) {
+                mPagerAdapter.setPictures(Arrays.asList(pictures));
+                mPagerAdapter.notifyDataSetChanged();
+                if (pictures.length > mSavedPosition) {
+                    mViewPager.setCurrentItem(mSavedPosition, false);
+                }
+            }
+        };
+    }
 
-		mDrawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
-		mDrawerLayout, /* DrawerLayout object */
-		R.drawable.ic_drawer, /* nav drawer image to replace 'Up' caret */
-		R.string.drawer_open, /* "open drawer" description for accessibility */
-		R.string.drawer_close /* "close drawer" description for accessibility */
-		) {
-			@Override
-			public void onDrawerSlide(View drawerView, float slideOffset) {
-				checkActionBarVisibility(slideOffset);
-				super.onDrawerSlide(drawerView, slideOffset);
-			}
+    protected void setUpDrawer() {
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mDrawerList = (ListView) findViewById(R.id.leftDrawer);
+        mActionBarHeight = (int) getResources().getDimension(R.dimen.toolbar_height);
+        ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) mDrawerList.getLayoutParams();
+        layoutParams.setMargins(0, mActionBarHeight, 0, 0);
+        menuItems = new ArrayList<String>();
+        menuItems.add("Test");
 
-			private void checkActionBarVisibility(float slideOffset) {
-				if (slideOffset > 0) {
-					int alphaStep = (int) ((255 - mFadingActionBarHelper.getLastAlpha()) * slideOffset);
-					mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha() + alphaStep);
-				} else {
-					mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
-				}
-			}
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
 
-			public void onDrawerClosed(View drawerView) {
-				showContentActionbar();
-				mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
-			}
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, menuItems));
 
-			public void onDrawerOpened(View drawerView) {
-				showAppActionbar();
-			}
-		};
-		mDrawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
+        mDrawerLayout, /* DrawerLayout object */
+        mToolbar, /* nav drawer image to replace 'Up' caret */
+        R.string.drawer_open, /* "open drawer" description for accessibility */
+        R.string.drawer_close /* "close drawer" description for accessibility */
+                ) {
+                    @Override
+                    public void onDrawerSlide(View drawerView, float slideOffset) {
+                        checkActionBarVisibility(slideOffset);
+                        super.onDrawerSlide(drawerView, slideOffset);
+                    }
 
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		getActionBar().setHomeButtonEnabled(true);
-	}
+                    private void checkActionBarVisibility(float slideOffset) {
+                        if (slideOffset > 0) {
+                            int alphaStep = (int) ((255 - mFadingActionBarHelper.getLastAlpha()) * slideOffset);
+                            mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha() + alphaStep);
+                        } else {
+                            mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
+                        }
+                    }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Pass the event to ActionBarDrawerToggle, if it returns
-		// true, then it has handled the app icon touch event
-		if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item)) {
-			return true;
-		}
+                    public void onDrawerClosed(View drawerView) {
+                        showContentActionbar();
+                        mBackgroundDrawable.setAlpha(mFadingActionBarHelper.getLastAlpha());
+                    }
 
-		return super.onOptionsItemSelected(item);
-	}
+                    public void onDrawerOpened(View drawerView) {
+                        showAppActionbar();
+                    }
+                };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		super.onPostCreate(savedInstanceState);
-		// Sync the toggle state after onRestoreInstanceState has occurred.
-		if (mDrawerToggle != null) {
-			mDrawerToggle.syncState();
-		}
-	}
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+    }
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		if (mDrawerToggle != null) {
-			mDrawerToggle.onConfigurationChanged(newConfig);
-		}
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Pass the event to ActionBarDrawerToggle, if it returns
+        // true, then it has handled the app icon touch event
+        if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
 
-	protected void showContentActionbar() {
-		invalidateOptionsMenu();
-	}
+        return super.onOptionsItemSelected(item);
+    }
 
-	protected void showAppActionbar() {
-		invalidateOptionsMenu();
-	}
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        if (mDrawerToggle != null) {
+            mDrawerToggle.syncState();
+        }
+    }
 
-	private OnScrollChangedCallback mScrollChangedCallback = new OnScrollChangedCallback() {
-		@Override
-		public void onScroll(int l, int scrollY) {
-			int stickyPos = scrollY - mFadingActionBarHelper.getHeaderHeight() + mActionBarHeight;
-			mStickyView.setTranslationY(Math.max(mPlaceholderView.getTop(), stickyPos));
-		}
-	};
-	private int mActionBarHeight;
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (mDrawerToggle != null) {
+            mDrawerToggle.onConfigurationChanged(newConfig);
+        }
+    }
+
+    protected void showContentActionbar() {
+        invalidateOptionsMenu();
+    }
+
+    protected void showAppActionbar() {
+        invalidateOptionsMenu();
+    }
+
+    private OnScrollChangedCallback mScrollChangedCallback = new OnScrollChangedCallback() {
+        @Override
+        public void onScroll(int l, int scrollY) {
+            int stickyPos = scrollY - mFadingActionBarHelper.getHeaderHeight() + mActionBarHeight;
+            mStickyView.setTranslationY(Math.max(mPlaceholderView.getTop(), stickyPos));
+        }
+    };
+    private int mActionBarHeight;
+    private Toolbar mToolbar;
 
 }
