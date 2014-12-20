@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
@@ -87,6 +89,21 @@ public class MainActivity extends Activity {
 		mPagerAdapter = new GalleryViewPagerAdapter(getFragmentManager());
 		mViewPager = (ViewPager) headerView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
+		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
+			
+			@Override
+			public void onPageSelected(int currentPage) {
+				Log.d("TestApp", "ViewPager shows entry number " + currentPage);
+			}
+			
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+			}
+			
+			@Override
+			public void onPageScrollStateChanged(int arg0) {
+			}
+		});
 		GsonRequest<ErasmusPicture[]> request = new GsonRequest<ErasmusPicture[]>("http://erasmus.thegerman.de/conf/getJSON.php?aktion=getAllImagesJson", ErasmusPicture[].class, null, createSuccessListener(), null);
 		TestApplication.getRequestQueue().add(request);
 		return headerView;
