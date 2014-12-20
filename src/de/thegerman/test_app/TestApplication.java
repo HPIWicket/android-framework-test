@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 
@@ -18,7 +17,6 @@ import com.squareup.picasso.Picasso;
 
 import dalvik.system.DexClassLoader;
 import de.thegerman.nativebitmapcache.AshmemBitmapCache;
-import de.thegerman.nativebitmapcache.BitmapPool;
 import de.thegerman.nativebitmapcache.MemoryFileBitmapCache;
 import de.thegerman.nativebitmapcache.NativeBitmapCache;
 import de.thegerman.nativebitmapcache.PicassoLruCache;
@@ -26,7 +24,6 @@ import de.thegerman.nativebitmapcache.PicassoLruCache;
 public class TestApplication extends Application {
 	private static Context sAppContext;
 	private static RequestQueue sRequestQueue;
-	private static BitmapPool sBitmapPool;
 	private static Picasso sPicasso;
 	private static Cache sPicassoCache;
 
@@ -34,7 +31,6 @@ public class TestApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		sAppContext = getApplicationContext();
-		sBitmapPool = new BitmapPool();
 		sPicassoCache = loadPicassoCache(sAppContext); 
 		sRequestQueue = Volley.newRequestQueue(sAppContext);
 		sPicasso = new Picasso.Builder(sAppContext).
@@ -76,15 +72,9 @@ public class TestApplication extends Application {
 		// picassoCache = new LruCache(appContext);
 //		 picassoCache = new PicassoLruCache(appContext);
 //		 picassoCache = new NativeBitmapCache(appContext);
-		picassoCache = new AshmemBitmapCache(appContext, sBitmapPool);
+		picassoCache = new AshmemBitmapCache(appContext);
 //		picassoCache = new MemoryFileBitmapCache(appContext);
     return picassoCache;
-	}
-	
-	public static void makeBitmapAvailable(Bitmap bitmap) {
-		if (sPicassoCache instanceof AshmemBitmapCache) {
-			sBitmapPool.addAvailableBitmap(bitmap);
-		}
 	}
 
 	public static Context getAppContext() {
